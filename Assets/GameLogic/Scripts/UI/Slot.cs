@@ -1,27 +1,42 @@
 using UnityEngine;
-using UnityEngine.EventSystems; // Necessário para os eventos
+using UnityEngine.EventSystems;
 
 public class Slot : MonoBehaviour, IDropHandler
 {
-    // Esta função roda AUTOMATICAMENTE quando você solta algo com "Draggable" aqui em cima
     public void OnDrop(PointerEventData eventData)
     {
-        Debug.Log("Algo caiu no slot!");
-
-        // 1. Verifica se o objeto que caiu tem o script Draggable
+        // 1. Verifica se o que caiu é uma carta válida
         if (eventData.pointerDrag != null)
         {
-            // Pega o script da carta que está sendo arrastada
-            Draggable draggableScript = eventData.pointerDrag.GetComponent<Draggable>();
+            Draggable incomingDraggable = eventData.pointerDrag.GetComponent<Draggable>();
             
-            if (draggableScript != null)
+            if (incomingDraggable != null)
             {
-                // 2. O PULO DO GATO:
-                // Mudamos o 'originalParent' da carta para SER ESTE SLOT.
-                draggableScript.originalParent = this.transform;
-                
-                // Agora, quando o 'OnEndDrag' da carta rodar (milissegundos depois),
-                // ele vai mover a carta para o centro deste slot, e não para o menu anterior.
+                // --- A LÓGICA DE TROCA COMEÇA AQUI ---
+
+                // Verifica se este slot JÁ TEM uma carta (filho)
+                if (transform.childCount > 0)
+                {
+                    // Pega a carta que já estava aqui (vamos chamar de "Morador Antigo")
+                    Transform existingCard = transform.GetChild(0);
+
+                    // Pega de onde a nova carta veio (vamos chamar de "Casa Anterior")
+                    Transform previousHome = incomingDraggable.originalParent;
+
+                    // Manda o Morador Antigo para a Casa Anterior
+                    existingCard.SetParent(previousHome);
+                    
+                    // Reseta a posição dele para ficar centralizado na Casa Anterior
+                    existingCard.localPosition = Vector3.zero;
+
+                    // Nota: Se a 'Casa Anterior' for o Container do Roster (com LayoutGroup),
+                    // ele vai se ajustar automaticamente na lista.
+                }
+
+                // --- FIM DA TROCA ---
+
+                // Define este slot como a nova casa da carta que chegou (Incoming)
+                incomingDraggable.originalParent = this.transform;
             }
         }
     }

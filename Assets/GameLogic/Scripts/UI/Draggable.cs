@@ -16,10 +16,7 @@ public class Draggable : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
 
 
     public void OnBeginDrag(PointerEventData eventData)
-    {
-        Debug.Log("Começou a arrastar!");
-        
-        
+    {   
         originalParent = transform.parent;
         
         // Tira a carta da lista e joga direto no Canvas para ela ficar por cima de tudo
@@ -44,9 +41,7 @@ public class Draggable : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
 
     // 3. Quando você solta o botão do mouse
     public void OnEndDrag(PointerEventData eventData)
-    {
-        Debug.Log("Soltou!");
-        
+    {        
         // Volta a ficar opaca
         canvasGroup.alpha = 1f;
         

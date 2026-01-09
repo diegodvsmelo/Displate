@@ -14,12 +14,14 @@ public class MinigameUI : MonoBehaviour
     // Controle interno (Não mexa pelo Inspector)
     private bool isRunning = true; 
     private float finalPositionX = 0f;
-
+    public void ResetUI()
+    {
+        isRunning = true; // Volta a oscilar no Update
+        // Opcional: Se quiser que ele pule pro meio instantaneamente
+        // pointer.anchoredPosition = new Vector2(totalWidth / 2, 0); 
+    }
     void Update()
     {
-        // AQUI ESTAVA O PROBLEMA:
-        // Removemos o 'SetZoneSize(testChance)' daqui.
-        // Agora o tamanho só muda quando o GameManager manda.
 
         if (isRunning)
         {
