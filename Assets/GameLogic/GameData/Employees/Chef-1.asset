@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EmployeeData
   employeeName: Jansinho
   profilePicture: {fileID: 0}
+  cardColor: {r: 0.93962264, g: 0.23224634, b: 0.23224634, a: 1}
   cookingSkill: 75
   serviceSkill: 15
   operationalSkill: 30

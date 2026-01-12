@@ -7,6 +7,9 @@ public class EmployeeData : ScriptableObject
     public string employeeName;
     public Sprite profilePicture;
 
+    [Header("Visual Settings")]
+    public Color cardColor;
+
     [Header("Skills (0-100)")]
     [Range(0, 100)] public int cookingSkill;     
     [Range(0, 100)] public int serviceSkill;     

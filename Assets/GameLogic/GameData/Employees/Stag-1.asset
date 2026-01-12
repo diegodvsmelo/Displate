@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db329e0268aeb4146a3a9da2a62f416c, type: 3}
   m_Name: Stag-1
   m_EditorClassIdentifier: Assembly-CSharp::EmployeeData
-  employeeName: 
+  employeeName: Stag
   profilePicture: {fileID: 0}
+  cardColor: {r: 0.7882353, g: 0.66408986, b: 0.16470589, a: 1}
   cookingSkill: 15
   serviceSkill: 40
   operationalSkill: 50
