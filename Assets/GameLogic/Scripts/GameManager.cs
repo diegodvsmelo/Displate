@@ -107,59 +107,93 @@ public class GameManager : MonoBehaviour
         if (currentSquad.Count > 0)
         {
             isMissionRunning = true;
-
             ConsumeSquadStamina();
-            
+
             float chance = CalculateSquadChance(missaoTeste, currentSquad);
-            minigameUI.SetZoneSize(chance); // Garante que visual está atualizado
-            StartCoroutine(ProcessMissionResult(chance));
+            minigameUI.SetZoneSize(chance);
+            
+            // --- NOVA LÓGICA DE CRÍTICO ---
+            bool isCritical = chance >= 100f; // Verifica se é 100% garantido
+            
+            // Passamos essa informação para a Coroutine
+            StartCoroutine(ProcessMissionResult(chance, isCritical));
         }
         else
         {
-            Debug.LogWarning("Não pode enviar missão vazia!");
+            Debug.LogWarning("Squad vazio!");
         }
     }
 
-    IEnumerator ProcessMissionResult(float chancePercent)
+    IEnumerator ProcessMissionResult(float chancePercent, bool isCritical)
     {
-        yield return new WaitForSeconds(3f); // Suspense
-        
-        float roll = Random.Range(0f, 100f);
-        bool isSuccess = roll <= chancePercent;
-
-        // --- INTEGRAÇÃO COM ECONOMIA ---
-        if (isSuccess)
+        // LÓGICA DO TEMPO:
+        if (isCritical)
         {
-            Debug.Log("SUCESSO! Pagando recompensas...");
-            resourceManager.ModifyMoney(missaoTeste.moneyReward);
-            resourceManager.ModifyReputation(missaoTeste.reputationReward);
+            Debug.Log("CRÍTICO! 100% de chance! Finalização Imediata!");
+            // Não espera os 3 segundos. Passa direto.
+            // Podemos esperar uma fração de segundo só para não ser glitch visual
+            yield return new WaitForSeconds(0.5f); 
         }
         else
         {
-            Debug.Log("FALHA! Aplicando penalidades...");
-            // Nota: Penalidade geralmente não tira dinheiro, só reputação
-            resourceManager.ModifyReputation(-missaoTeste.reputationPenalty);
+            // Fluxo normal: Tensão de 3 segundos
+            yield return new WaitForSeconds(3f);
         }
-        // Lógica visual do ponteiro
-        float stopPositionX;
-        float totalWidth = minigameUI.totalWidth;
-        float zoneWidth = (totalWidth * chancePercent) / 100f;
-        if (zoneWidth >= totalWidth) zoneWidth = totalWidth - 1; 
 
-        if (isSuccess) stopPositionX = Random.Range(0f, zoneWidth);
-        else stopPositionX = Random.Range(zoneWidth, totalWidth);
+        // Lógica de Sucesso (Se for crítico, é sucesso automático)
+        float roll = Random.Range(0f, 100f);
+        bool isSuccess = isCritical || (roll <= chancePercent);
 
-        minigameUI.StopPointer(stopPositionX);
+        // -- PARAR O PONTEIRO --
+        // (Sua lógica visual do ponteiro continua aqui...)
+        float zoneWidth = (minigameUI.totalWidth * chancePercent) / 100f;
+        if (zoneWidth >= minigameUI.totalWidth) zoneWidth = minigameUI.totalWidth - 1;
+        float stopX = isSuccess ? Random.Range(0f, zoneWidth) : Random.Range(zoneWidth, minigameUI.totalWidth);
+        minigameUI.StopPointer(stopX);
+        
+        // -- RECOMPENSAS E XP --
+        if (isSuccess)
+        {
+            Debug.Log("SUCESSO!");
+            
+            // Dinheiro e Fama
+            resourceManager.ModifyMoney(missaoTeste.moneyReward);
+            resourceManager.ModifyReputation(missaoTeste.reputationReward);
 
-        yield return new WaitForSeconds(2f); // Tempo para ler o resultado
+            // DISTRIBUIÇÃO DE XP (SUCESSO OU CRÍTICO)
+            int xpToGive = isCritical ? missaoTeste.xpOnCritical : missaoTeste.xpOnSuccess;
+            GiveSquadExperience(xpToGive);
+        }
+        else
+        {
+            Debug.Log("FALHA!");
+            resourceManager.ModifyReputation(-missaoTeste.reputationPenalty);
+            
+            // XP DE CONSOLAÇÃO (FALHA)
+            GiveSquadExperience(missaoTeste.xpOnFailure);
+        }
 
-        // CORREÇÃO 2: Resgata os funcionários antes de destruir os slots
+        yield return new WaitForSeconds(2f);
         ReturnCrewToRoster();
-
         ShowMap();
         
         missaoTeste = null;
         isMissionRunning = false;
+    }
+
+    void GiveSquadExperience(int amount)
+    {
+        foreach (Slot slot in missionSlots) // Usa a lista missionSlots que já temos
+        {
+            if (slot.transform.childCount > 0)
+            {
+                EmployeeCard card = slot.transform.GetChild(0).GetComponent<EmployeeCard>();
+                if (card != null)
+                {
+                    card.AddExperience(amount);
+                }
+            }
+        }
     }
 
 

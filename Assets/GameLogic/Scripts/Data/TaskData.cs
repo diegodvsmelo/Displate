@@ -34,6 +34,11 @@ public class TaskData : ScriptableObject
     public int moneyReward;       
     public int reputationReward;  
     public int reputationPenalty; 
+
+    [Header("XP Rewards")]
+    public int xpOnSuccess;   
+    public int xpOnFailure;   
+    public int xpOnCritical; //Quando chance for 100%
 }
 
 [System.Serializable]

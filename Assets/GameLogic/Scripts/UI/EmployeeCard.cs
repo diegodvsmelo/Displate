@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,6 +11,9 @@ public class EmployeeCard : MonoBehaviour
     public Slider staminaSlider; // Arraste o Slider aqui no Inspector
     public float currentStamina; // Energia atual desta carta específica
     public float staminaRegen=2f;
+
+    public TextMeshProUGUI levelText; // Arraste um texto aqui para ver o nível
+    public Slider xpSlider;           // (Opcional) Barra de XP separada da Stamina
 
     void Update()
     {
@@ -51,6 +55,7 @@ public class EmployeeCard : MonoBehaviour
 
         currentStamina = newData.maxStamina;
         UpdateStaminaUI();
+        UpdateLevelUI();
     }
 
     public void ConsumeStamina(int amount)
@@ -76,6 +81,50 @@ public class EmployeeCard : MonoBehaviour
         {
             staminaSlider.maxValue = data.maxStamina;
             staminaSlider.value = currentStamina;
+        }
+    }
+
+    public void AddExperience(int amount)
+    {
+        data.currentXP += amount;
+        Debug.Log($"{data.employeeName} ganhou {amount} XP!");
+
+        CheckLevelUp();
+        UpdateLevelUI();
+    }
+    void CheckLevelUp()
+    {
+        // Enquanto a XP atual for maior que o necessário para o próximo nível...
+        while (data.currentXP >= data.GetXpToNextLevel())
+        {
+            // Consome a XP usada
+            data.currentXP -= data.GetXpToNextLevel();
+            
+            // Sobe de nível
+            data.currentLevel++;
+            
+            // Ganha ponto de habilidade
+            data.skillPoints++;
+            
+            Debug.Log($"LEVEL UP! {data.employeeName} agora é nível {data.currentLevel} e tem {data.skillPoints} pontos!");
+            
+            // (Opcional) Aqui você poderia tocar um som ou efeito visual
+        }
+    }
+
+    public void UpdateLevelUI()
+    {
+        // Atualiza o texto do nível se ele existir
+        if (levelText != null)
+        {
+            levelText.text = $"Nv. {data.currentLevel}";
+        }
+
+        // (Opcional) Atualiza slider de XP
+        if (xpSlider != null)
+        {
+            xpSlider.maxValue = data.GetXpToNextLevel();
+            xpSlider.value = data.currentXP;
         }
     }
 }

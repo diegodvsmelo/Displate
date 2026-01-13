@@ -28,3 +28,6 @@ MonoBehaviour:
   moneyReward: 20
   reputationReward: 18
   reputationPenalty: 25
+  xpOnSuccess: 40
+  xpOnFailure: 20
+  xpOnCritical: 120
