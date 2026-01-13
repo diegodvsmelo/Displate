@@ -5,6 +5,7 @@ public class EmployeeData : ScriptableObject
 {
     [Header("Identity")]
     public string employeeName;
+    [TextArea] public string description; // NOVO: Breve história do personagem
     public Sprite profilePicture;
 
 
@@ -28,7 +29,7 @@ public class EmployeeData : ScriptableObject
     public int currentXP = 0;
     public int skillPoints = 0; 
     
-    
+
     // nível 1 precisa de 100, Nível 2 precisa de 200...
     public int GetXpToNextLevel()
     {
