@@ -29,6 +29,11 @@ public class TaskData : ScriptableObject
     
     public float baseDuration; 
     public int staminaCost;
+
+    [Header("Rewards & Penalties")]
+    public int moneyReward;       
+    public int reputationReward;  
+    public int reputationPenalty; 
 }
 
 [System.Serializable]

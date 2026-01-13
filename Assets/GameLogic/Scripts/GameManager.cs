@@ -24,7 +24,8 @@ public class GameManager : MonoBehaviour
     public List<EmployeeData> startingEmployees; 
     public GameObject employeeCardPrefab;
     private bool isMissionRunning = false;
-
+    public ResourceManager resourceManager;
+    
     void Start()
     {
         SetupRosterSlots();
@@ -96,11 +97,23 @@ public class GameManager : MonoBehaviour
     IEnumerator ProcessMissionResult(float chancePercent)
     {
         yield return new WaitForSeconds(3f); // Suspense
-
+        
         float roll = Random.Range(0f, 100f);
         bool isSuccess = roll <= chancePercent;
-        Debug.Log(isSuccess ? "SUCESSO!" : "FALHA!");
 
+        // --- INTEGRAÇÃO COM ECONOMIA ---
+        if (isSuccess)
+        {
+            Debug.Log("SUCESSO! Pagando recompensas...");
+            resourceManager.ModifyMoney(missaoTeste.moneyReward);
+            resourceManager.ModifyReputation(missaoTeste.reputationReward);
+        }
+        else
+        {
+            Debug.Log("FALHA! Aplicando penalidades...");
+            // Nota: Penalidade geralmente não tira dinheiro, só reputação
+            resourceManager.ModifyReputation(-missaoTeste.reputationPenalty);
+        }
         // Lógica visual do ponteiro
         float stopPositionX;
         float totalWidth = minigameUI.totalWidth;

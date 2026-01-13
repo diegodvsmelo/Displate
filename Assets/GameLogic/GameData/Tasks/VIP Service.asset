@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TaskData
   taskName: VIP Service
   description: Atender o pedido de um cliente exigente
+  maxSlots: 1
   requirements:
   - category: 1
     weight: 70
@@ -21,6 +22,9 @@ MonoBehaviour:
     weight: 20
   - category: 2
     weight: 10
-  difficultyLevel: 80
+  difficultyPoints: 200
   baseDuration: 8
   staminaCost: 25
+  moneyReward: 64
+  reputationReward: 30
+  reputationPenalty: 50

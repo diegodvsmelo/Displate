@@ -14,11 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TaskData
   taskName: Clean Tables
   description: Retirar pratos e limpar mesa do cliente
+  maxSlots: 1
   requirements:
   - category: 2
     weight: 70
   - category: 3
     weight: 30
-  difficultyLevel: 30
-  baseDuration: 10
+  difficultyPoints: 60
+  baseDuration: 5
   staminaCost: 10
+  moneyReward: 0
+  reputationReward: 10
+  reputationPenalty: 15
