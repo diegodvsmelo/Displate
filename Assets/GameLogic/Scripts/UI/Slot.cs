@@ -3,6 +3,7 @@ using UnityEngine.EventSystems;
 
 public class Slot : MonoBehaviour, IDropHandler
 {
+    public bool isRoster = false;
     public void OnDrop(PointerEventData eventData)
     {
         // 1. Verifica se o que caiu é uma carta válida

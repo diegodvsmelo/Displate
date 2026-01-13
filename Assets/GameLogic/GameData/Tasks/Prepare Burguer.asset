@@ -24,7 +24,7 @@ MonoBehaviour:
     weight: 20
   difficultyPoints: 150
   baseDuration: 10
-  staminaCost: 15
+  staminaCost: 30
   moneyReward: 20
   reputationReward: 18
   reputationPenalty: 25

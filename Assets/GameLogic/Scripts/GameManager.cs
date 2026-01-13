@@ -32,6 +32,29 @@ public class GameManager : MonoBehaviour
         SpawnStartingCrew();
         ShowMap();
     }
+    void Update()
+    {
+        // 1. Verifica se temos uma missão aberta (missaoTeste != null)
+        // 2. Verifica se NÃO apertamos o botão dispatch ainda (!isMissionRunning)
+        //    (Pois não queremos que a barra mude enquanto o ponteiro está girando)
+        if (missaoTeste != null && !isMissionRunning)
+        {
+            // Pega quem está nos slots AGORA
+            List<EmployeeData> currentSquad = GetSquadFromSlots();
+            
+            // Se tiver gente, calcula e mostra
+            if (currentSquad.Count > 0)
+            {
+                float chance = CalculateSquadChance(missaoTeste, currentSquad);
+                minigameUI.SetZoneSize(chance); // <--- Isso atualiza a barra verde ao vivo!
+            }
+            else
+            {
+                // Se tirou todo mundo, a barra zera
+                minigameUI.SetZoneSize(0);
+            }
+        }
+    }
 
     public void ShowMap()
     {
@@ -69,6 +92,7 @@ public class GameManager : MonoBehaviour
             Slot slotScript = newSlotObj.GetComponent<Slot>();
             if (slotScript != null)
             {
+                slotScript.isRoster = false;
                 missionSlots.Add(slotScript);
             }
         }
@@ -83,6 +107,8 @@ public class GameManager : MonoBehaviour
         if (currentSquad.Count > 0)
         {
             isMissionRunning = true;
+
+            ConsumeSquadStamina();
             
             float chance = CalculateSquadChance(missaoTeste, currentSquad);
             minigameUI.SetZoneSize(chance); // Garante que visual está atualizado
@@ -136,7 +162,7 @@ public class GameManager : MonoBehaviour
         isMissionRunning = false;
     }
 
-    // --- NOVA FUNÇÃO DE RESGATE ---
+
     void ReturnCrewToRoster()
     {
         // Percorre cada slot da MISSÃO para ver se tem alguém lá
@@ -241,6 +267,9 @@ public class GameManager : MonoBehaviour
             {
                 GameObject newSlot = Instantiate(slotPrefab, rosterContainer);
                 Slot slotScript = newSlot.GetComponent<Slot>();
+
+                slotScript.isRoster = true;
+
                 rosterSlots.Add(slotScript);
             }
         }
@@ -264,4 +293,22 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    void ConsumeSquadStamina()
+    {
+        int cost = missaoTeste.staminaCost;
+
+        foreach (Slot slot in missionSlots)
+        {
+            if (slot.transform.childCount > 0)
+            {
+                // Pega o componente EmployeeCard do objeto visual
+                EmployeeCard card = slot.transform.GetChild(0).GetComponent<EmployeeCard>();
+                
+                if (card != null)
+                {
+                    card.ConsumeStamina(cost);
+                }
+            }
+        }
+    }
 }
