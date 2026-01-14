@@ -1,9 +1,9 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems; // NECESSÁRIO PARA O CLIQUE
+using UnityEngine.EventSystems;
 
-public class EmployeeCard : MonoBehaviour, IPointerClickHandler // INTERFACE ADICIONADA
+public class EmployeeCard : MonoBehaviour, IPointerClickHandler
 {
     public EmployeeData data; 
     public Image backgroundImage;
@@ -16,25 +16,23 @@ public class EmployeeCard : MonoBehaviour, IPointerClickHandler // INTERFACE ADI
     [Header("Level & Upgrade")]
     public TextMeshProUGUI levelText;
     public Slider xpSlider;
-    public GameObject upgradeIcon; // O ícone de exclamação/seta verde
+    public GameObject upgradeIcon; // O ícone de exclamação
 
     // Referência para o painel de ficha de personagem
     private CharacterSheetUI characterSheet;
 
     void Start()
     {
-        // Encontra o painel na cena, mesmo se estiver desligado (FindObjectsInactive.Include)
         characterSheet = FindFirstObjectByType<CharacterSheetUI>(FindObjectsInactive.Include);
     }
 
     void Update()
     {
-        // Se a carta está parada (tem um pai)
         if (transform.parent != null)
         {
             Slot mySlot = transform.parent.GetComponent<Slot>();
             
-            // Só regenera se for um slot do Roster (Banco de Reservas)
+            // Só regenera se for um slot do Roster
             if (mySlot != null && mySlot.isRoster)
             {
                 RecoverStamina(Time.deltaTime * staminaRegen); 
@@ -42,15 +40,16 @@ public class EmployeeCard : MonoBehaviour, IPointerClickHandler // INTERFACE ADI
         }
     }
 
-    // --- INTERAÇÃO (PASSO 5) ---
+    // --- INTERAÇÃO CORRIGIDA ---
     public void OnPointerClick(PointerEventData eventData)
     {
-        // Verifica se foi clique com botão DIREITO
         if (eventData.button == PointerEventData.InputButton.Right)
         {
             if (characterSheet != null)
             {
-                characterSheet.OpenSheet(data);
+                // MUDANÇA: Passamos 'UpdateLevelUI' como callback
+                // Assim, quando fechar o painel, ele avisa este card para se atualizar
+                characterSheet.OpenSheet(data, UpdateLevelUI);
             }
             else
             {
@@ -64,26 +63,18 @@ public class EmployeeCard : MonoBehaviour, IPointerClickHandler // INTERFACE ADI
     {
         this.data = newData;
 
-        if (backgroundImage == null)
-        {
-            backgroundImage = GetComponent<Image>();
-        }
-
-        if (backgroundImage != null)
-        {
-            backgroundImage.color = newData.cardColor;
-        }
+        if (backgroundImage == null) backgroundImage = GetComponent<Image>();
+        if (backgroundImage != null) backgroundImage.color = newData.cardColor;
 
         currentStamina = newData.maxStamina;
         UpdateStaminaUI();
-        UpdateLevelUI(); // Isso também vai atualizar o ícone de upgrade
+        UpdateLevelUI(); 
     }
 
     public void ConsumeStamina(int amount)
     {
         currentStamina -= amount;
         if (currentStamina < 0) currentStamina = 0;
-        
         UpdateStaminaUI();
     }
 
@@ -91,7 +82,6 @@ public class EmployeeCard : MonoBehaviour, IPointerClickHandler // INTERFACE ADI
     {
         currentStamina += amount;
         if (currentStamina > data.maxStamina) currentStamina = data.maxStamina;
-        
         UpdateStaminaUI();
     }
 
@@ -107,7 +97,7 @@ public class EmployeeCard : MonoBehaviour, IPointerClickHandler // INTERFACE ADI
     public void AddExperience(int amount)
     {
         data.currentXP += amount;
-        Debug.Log($"{data.employeeName} ganhou {amount} XP!");
+        // Debug.Log($"{data.employeeName} ganhou {amount} XP!");
 
         CheckLevelUp();
         UpdateLevelUI();
@@ -119,32 +109,33 @@ public class EmployeeCard : MonoBehaviour, IPointerClickHandler // INTERFACE ADI
         {
             data.currentXP -= data.GetXpToNextLevel();
             data.currentLevel++;
-            data.skillPoints++;
+            data.skillPoints+=5; // Ganha ponto 
             
             Debug.Log($"LEVEL UP! {data.employeeName} nv. {data.currentLevel}. Pontos: {data.skillPoints}");
         }
     }
 
+    // Chamado no Setup, no LevelUp e AGORA chamado também quando o Painel fecha
     public void UpdateLevelUI()
     {
-        // Atualiza Texto
-        if (levelText != null)
-        {
-            levelText.text = $"Nv. {data.currentLevel}";
-        }
+        if (levelText != null) levelText.text = $"Nv. {data.currentLevel}";
 
-        // Atualiza Slider de XP
         if (xpSlider != null)
         {
             xpSlider.maxValue = data.GetXpToNextLevel();
             xpSlider.value = data.currentXP;
         }
 
-        // --- NOVO: Atualiza Ícone de Upgrade ---
+        // LÓGICA DO ÍCONE
         if (upgradeIcon != null)
         {
-            // Mostra o ícone se tiver pontos sobrando (maior que 0)
-            upgradeIcon.SetActive(data.skillPoints > 0);
+            bool hasPoints = data.skillPoints > 0;
+            
+            // Só ativa/desativa se o estado mudou para economizar processamento
+            if (upgradeIcon.activeSelf != hasPoints)
+            {
+                upgradeIcon.SetActive(hasPoints);
+            }
         }
     }
 }

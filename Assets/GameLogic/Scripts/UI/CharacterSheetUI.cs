@@ -6,11 +6,10 @@ public class CharacterSheetUI : MonoBehaviour
 {
     [Header("Header Info")]
     public TextMeshProUGUI nameText;
-    //public TextMeshProUGUI descriptionText;
+    // public TextMeshProUGUI descriptionText; 
     public TextMeshProUGUI pointsAvailableText;
 
-    [Header("Stat Rows (Referências Manuais para protótipo)")]
-    // Cada 'StatRow' é uma classe auxiliar simples que definiremos abaixo
+    [Header("Stat Rows")]
     public StatRowUI cookingRow;
     public StatRowUI serviceRow;
     public StatRowUI operationalRow;
@@ -18,17 +17,22 @@ public class CharacterSheetUI : MonoBehaviour
 
     private EmployeeData currentData;
     
-    // Variáveis temporárias para não salvar direto no disco enquanto edita
+    // Callback: Quem eu devo avisar quando fechar?
+    private System.Action onUpdateCallback;
+
+    // Variáveis temporárias
     private int tempPoints;
     private int tempCooking, tempService, tempOperational, tempAgility;
 
-    // Abre a tela preenchendo os dados
-    public void OpenSheet(EmployeeData data)
+    // MUDANÇA: Adicionado parâmetro opcional 'onUpdate'
+    public void OpenSheet(EmployeeData data, System.Action onUpdate = null)
     {
         currentData = data;
+        onUpdateCallback = onUpdate; // Guarda a referência
+        
         gameObject.SetActive(true);
 
-        // Copia os valores atuais para temporários
+        // Copia valores
         tempPoints = data.skillPoints;
         tempCooking = data.cookingSkill;
         tempService = data.serviceSkill;
@@ -36,20 +40,15 @@ public class CharacterSheetUI : MonoBehaviour
         tempAgility = data.agility;
 
         nameText.text = data.employeeName;
-        //descriptionText.text = data.description;
+        // if(descriptionText) descriptionText.text = data.description;
 
         UpdateUI();
     }
 
-    // Chamado pelos botões de + e - (configuraremos na Unity)
-    // statName: "cooking", "service", etc.
-    // change: +1 ou -1
     public void ModifyStat(string statName, int change)
     {
-        // Se for aumentar (+1), precisa ter pontos
-        if (change > 0 && tempPoints <= 0) return;
+        if (change > 0 && tempPoints < change) return;
 
-        // Se for diminuir (-1), aplica a lógica de proteção
         if (change < 0)
         {
             if (statName == "cooking" && tempCooking <= currentData.cookingSkill) return;
@@ -58,15 +57,12 @@ public class CharacterSheetUI : MonoBehaviour
             if (statName == "agility" && tempAgility <= currentData.agility) return;
         }
 
-        // Aplica a mudança
         if (statName == "cooking") tempCooking += change;
         else if (statName == "service") tempService += change;
         else if (statName == "operational") tempOperational += change;
         else if (statName == "agility") tempAgility += change;
 
-        // Ajusta o saldo de pontos (se aumentou status, gasta ponto. Se diminuiu, recupera
         tempPoints -= change;
-
         UpdateUI();
     }
 
@@ -74,7 +70,6 @@ public class CharacterSheetUI : MonoBehaviour
     {
         pointsAvailableText.text = $"Pontos Disponíveis: {tempPoints}";
 
-        // Atualiza cada linha visualmente
         cookingRow.UpdateVisuals(tempCooking);
         serviceRow.UpdateVisuals(tempService);
         operationalRow.UpdateVisuals(tempOperational);
@@ -83,24 +78,27 @@ public class CharacterSheetUI : MonoBehaviour
 
     public void ConfirmChanges()
     {
-        // Salva definitivo no ScriptableObject
+        // Salva definitivo
         currentData.cookingSkill = tempCooking;
         currentData.serviceSkill = tempService;
         currentData.operationalSkill = tempOperational;
         currentData.agility = tempAgility;
         currentData.skillPoints = tempPoints;
 
+        // MUDANÇA: Avisa o card para desligar o ícone (pois skillPoints agora pode ser 0)
+        if (onUpdateCallback != null)
+        {
+            onUpdateCallback.Invoke();
+        }
+
         gameObject.SetActive(false);
     }
 }
 
-// Classe auxiliar para facilitar o controle das linhas
 [System.Serializable]
 public class StatRowUI
 {
     public TextMeshProUGUI valueText;
-    // Aqui você pode adicionar referências aos botões se quiser desativá-los visualmente
-    
     public void UpdateVisuals(float value)
     {
         valueText.text = value.ToString();

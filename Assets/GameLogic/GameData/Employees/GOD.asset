@@ -21,6 +21,6 @@ MonoBehaviour:
   operationalSkill: 100
   agility: 100
   maxStamina: 100
-  currentLevel: 2
-  currentXP: 155
-  skillPoints: 1
+  currentLevel: 1
+  currentXP: 99
+  skillPoints: 0

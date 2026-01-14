@@ -10,18 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: db329e0268aeb4146a3a9da2a62f416c, type: 3}
-  m_Name: Chef-1
+  m_Name: Stag-2
   m_EditorClassIdentifier: Assembly-CSharp::EmployeeData
-  employeeName: Jansinho
+  employeeName: Stag
   description: 
   profilePicture: {fileID: 0}
-  cardColor: {r: 0.93962264, g: 0.23224634, b: 0.23224634, a: 1}
-  cookingSkill: 85
-  serviceSkill: 15
-  operationalSkill: 30
+  cardColor: {r: 0.4490565, g: 0.31378177, b: 0.097436726, a: 1}
+  cookingSkill: 20
+  serviceSkill: 40
+  operationalSkill: 50
   agility: 60
   maxStamina: 100
-  currentLevel: 2
-  currentXP: 159
+  currentLevel: 1
+  currentXP: 99
   skillPoints: 0
-  baseSalary: 2

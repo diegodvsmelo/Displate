@@ -25,6 +25,7 @@ public class GameManager : MonoBehaviour
     public GameObject employeeCardPrefab;
     private bool isMissionRunning = false;
     public ResourceManager resourceManager;
+    public DayCycleManager dayCycleManager;
     
     void Start()
     {
@@ -159,6 +160,10 @@ public class GameManager : MonoBehaviour
             // Dinheiro e Fama
             resourceManager.ModifyMoney(missaoTeste.moneyReward);
             resourceManager.ModifyReputation(missaoTeste.reputationReward);
+            if (dayCycleManager != null)
+            {
+                dayCycleManager.AddDailyEarnings(missaoTeste.moneyReward);
+            }
 
             // DISTRIBUIÇÃO DE XP (SUCESSO OU CRÍTICO)
             int xpToGive = isCritical ? missaoTeste.xpOnCritical : missaoTeste.xpOnSuccess;
