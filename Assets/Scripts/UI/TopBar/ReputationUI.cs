@@ -22,6 +22,7 @@ public class ReputationUI : MonoBehaviour
     private int displayedReputation;
     private Coroutine animationRoutine;
     private ResourceManager resourceManager;
+    private ReputationTierManager reputationTierManager;
 
     private void OnEnable()
     {
@@ -38,23 +39,38 @@ public class ReputationUI : MonoBehaviour
         if (resourceManager != null)
             resourceManager.OnReputationChanged -= HandleReputationChanged;
 
+        if (reputationTierManager != null)
+        {
+            reputationTierManager.OnCurrentTierChanged -= HandleCurrentTierChanged;
+            reputationTierManager.OnReputationCapChanged -= HandleReputationCapChanged;
+        }
+
         if (animationRoutine != null)
             StopCoroutine(animationRoutine);
+
+        resourceManager = null;
+        reputationTierManager = null;
     }
 
     private void TrySubscribe()
     {
-        if (resourceManager != null)
-            return;
+        if (resourceManager == null && ResourceManager.Instance != null)
+        {
+            resourceManager = ResourceManager.Instance;
+            resourceManager.OnReputationChanged += HandleReputationChanged;
 
-        if (ResourceManager.Instance == null)
-            return;
+            displayedReputation = resourceManager.CurrentReputation;
+            UpdateReputationUI(displayedReputation);
+        }
 
-        resourceManager = ResourceManager.Instance;
-        resourceManager.OnReputationChanged += HandleReputationChanged;
+        if (reputationTierManager == null && ReputationTierManager.Instance != null)
+        {
+            reputationTierManager = ReputationTierManager.Instance;
+            reputationTierManager.OnCurrentTierChanged += HandleCurrentTierChanged;
+            reputationTierManager.OnReputationCapChanged += HandleReputationCapChanged;
 
-        displayedReputation = resourceManager.CurrentReputation;
-        UpdateReputationUI(displayedReputation);
+            UpdateReputationUI(displayedReputation);
+        }
     }
 
     private void HandleReputationChanged(int newReputation)
@@ -72,6 +88,22 @@ public class ReputationUI : MonoBehaviour
             StopCoroutine(animationRoutine);
 
         animationRoutine = StartCoroutine(AnimateReputationChange(newReputation));
+    }
+
+    private void HandleCurrentTierChanged(ReputationTierData currentTier)
+    {
+        if (resourceManager != null)
+            displayedReputation = resourceManager.CurrentReputation;
+
+        UpdateReputationUI(displayedReputation);
+    }
+
+    private void HandleReputationCapChanged(int newCap)
+    {
+        if (resourceManager != null)
+            displayedReputation = resourceManager.CurrentReputation;
+
+        UpdateReputationUI(displayedReputation);
     }
 
     private IEnumerator AnimateReputationChange(int targetReputation)
@@ -95,18 +127,30 @@ public class ReputationUI : MonoBehaviour
 
     private void UpdateReputationUI(int totalReputation)
     {
-        totalReputation = Mathf.Clamp(totalReputation, 0, GetMaxReputation());
+        int minReputation = GetCurrentTierMinimumReputation();
+        int maxReputation = Mathf.Max(minReputation + 1, GetMaxReputation());
+        int tierRange = Mathf.Max(1, maxReputation - minReputation);
+        int tierProgress = Mathf.Clamp(totalReputation - minReputation, 0, tierRange);
 
-        int filledStars = totalReputation / reputationPerStar;
-        int remainder = totalReputation % reputationPerStar;
+        int visibleStars = GetVisibleStarsCount();
+        float reputationPerVisibleStar = tierRange / (float)visibleStars;
 
-        if (filledStars > maxStars)
-            filledStars = maxStars;
+        int filledStars = tierProgress >= tierRange
+            ? visibleStars
+            : Mathf.FloorToInt(tierProgress / reputationPerVisibleStar);
+
+        float remainder = tierProgress - (filledStars * reputationPerVisibleStar);
 
         for (int i = 0; i < starImages.Length; i++)
         {
             if (starImages[i] == null)
                 continue;
+
+            if (i >= visibleStars)
+            {
+                starImages[i].sprite = emptyStarSprite;
+                continue;
+            }
 
             starImages[i].sprite = i < filledStars ? filledStarSprite : emptyStarSprite;
         }
@@ -114,31 +158,31 @@ public class ReputationUI : MonoBehaviour
         if (progressSlider != null)
         {
             progressSlider.minValue = 0f;
-            progressSlider.maxValue = reputationPerStar;
+            progressSlider.maxValue = reputationPerVisibleStar;
 
-            bool reachedMax = filledStars >= maxStars;
-            bool exactStarValue = remainder == 0;
+            bool reachedCap = tierProgress >= tierRange;
+            bool exactStarValue = Mathf.Approximately(remainder, 0f);
 
-            if (totalReputation <= 0 || reachedMax || exactStarValue)
+            if (tierProgress <= 0 || reachedCap || exactStarValue)
                 progressSlider.value = 0f;
             else
                 progressSlider.value = remainder;
         }
 
-        UpdateFillVisibility(totalReputation, filledStars, remainder);
+        UpdateFillVisibility(tierProgress, tierRange, remainder);
     }
 
-    private void UpdateFillVisibility(int totalReputation, int filledStars, int remainder)
+    private void UpdateFillVisibility(int tierProgress, int tierRange, float remainder)
     {
         if (fillImage == null)
             return;
 
-        bool reachedMax = filledStars >= maxStars;
-        bool exactStarValue = remainder == 0;
+        bool reachedCap = tierProgress >= tierRange;
+        bool exactStarValue = Mathf.Approximately(remainder, 0f);
 
         bool shouldHide =
-            totalReputation <= 0 ||
-            reachedMax ||
+            tierProgress <= 0 ||
+            reachedCap ||
             exactStarValue;
 
         Color color = fillImage.color;
@@ -146,8 +190,25 @@ public class ReputationUI : MonoBehaviour
         fillImage.color = color;
     }
 
+    private int GetCurrentTierMinimumReputation()
+    {
+        if (ReputationTierManager.Instance != null)
+            return ReputationTierManager.Instance.CurrentTierMinimumReputation;
+
+        return 0;
+    }
+
     private int GetMaxReputation()
     {
+        if (ReputationTierManager.Instance != null)
+            return ReputationTierManager.Instance.CurrentReputationCap;
+
         return reputationPerStar * maxStars;
+    }
+
+    private int GetVisibleStarsCount()
+    {
+        int starCount = starImages != null ? starImages.Length : 0;
+        return Mathf.Max(1, Mathf.Min(maxStars, starCount));
     }
 }

@@ -151,7 +151,22 @@ public class EmployeeData : ScriptableObject
 
     public int GetDailyCost()
     {
-        return baseSalary + currentLevel;
+        int restaurantLevel = 1;
+
+        if (RestaurantProgressionManager.Instance != null)
+            restaurantLevel = RestaurantProgressionManager.Instance.CurrentRestaurantLevel;
+
+        return GetDailyCost(restaurantLevel);
+    }
+
+    public int GetDailyCost(int restaurantLevel)
+    {
+        int safeEmployeeLevel = Mathf.Max(1, currentLevel);
+        int safeRestaurantLevel = Mathf.Max(1, restaurantLevel);
+
+        return baseSalary
+               + (2 * (safeEmployeeLevel - 1))
+               + (2 * (safeRestaurantLevel - 1));
     }
 
     public int GetXpToNextLevel()

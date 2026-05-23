@@ -13,6 +13,10 @@ public class EmployeeRosterManager : MonoBehaviour
     [SerializeField] private EmployeeCardListUI expandedSidebarUI;
 
     public IReadOnlyList<EmployeeData> CurrentEmployees => currentEmployees;
+    public int CurrentRosterLimit => GetCurrentRosterLimit();
+    public bool HasRosterSlotAvailable => currentEmployees.Count < CurrentRosterLimit;
+
+    private ReputationTierManager reputationTierManager;
 
     private void Awake()
     {
@@ -27,7 +31,23 @@ public class EmployeeRosterManager : MonoBehaviour
 
     private void Start()
     {
+        reputationTierManager = ReputationTierManager.Instance;
+
+        if (reputationTierManager != null)
+            reputationTierManager.OnCurrentTierChanged += HandleCurrentTierChanged;
+
         RebuildAllViews();
+    }
+
+    private void OnDestroy()
+    {
+        if (reputationTierManager != null)
+            reputationTierManager.OnCurrentTierChanged -= HandleCurrentTierChanged;
+    }
+
+    private void HandleCurrentTierChanged(ReputationTierData currentTier)
+    {
+        RefreshAllViews();
     }
 
     public List<EmployeeData> GetCurrentEmployeesList()
@@ -46,14 +66,37 @@ public class EmployeeRosterManager : MonoBehaviour
 
     public void AddEmployee(EmployeeData employee)
     {
+        TryAddEmployee(employee);
+    }
+
+    public bool TryAddEmployee(EmployeeData employee)
+    {
         if (employee == null)
-            return;
+            return false;
 
         if (currentEmployees.Contains(employee))
-            return;
+            return false;
+
+        if (!HasRosterSlotAvailable)
+        {
+            Debug.LogWarning($"[EmployeeRosterManager] Roster cheio. Limite atual: {CurrentRosterLimit}.");
+            return false;
+        }
 
         currentEmployees.Add(employee);
         RebuildAllViews();
+        return true;
+    }
+
+    public bool CanAddEmployee(EmployeeData employee)
+    {
+        if (employee == null)
+            return false;
+
+        if (currentEmployees.Contains(employee))
+            return false;
+
+        return HasRosterSlotAvailable;
     }
 
     public void RemoveEmployee(EmployeeData employee)
@@ -93,5 +136,13 @@ public class EmployeeRosterManager : MonoBehaviour
     {
         if (expandedSidebarUI != null)
             expandedSidebarUI.Rebuild(currentEmployees);
+    }
+
+    private int GetCurrentRosterLimit()
+    {
+        if (ReputationTierManager.Instance != null)
+            return ReputationTierManager.Instance.CurrentRosterLimit;
+
+        return int.MaxValue;
     }
 }

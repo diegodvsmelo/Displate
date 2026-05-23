@@ -16,6 +16,8 @@ public class ResourceManager : MonoBehaviour
 
     public int CurrentMoney => currentMoney;
     public int CurrentReputation => currentReputation;
+    public int CurrentReputationCap => GetCurrentReputationCap();
+    public bool IsReputationAtCurrentCap => currentReputation >= CurrentReputationCap;
 
     private void Awake()
     {
@@ -30,6 +32,7 @@ public class ResourceManager : MonoBehaviour
 
     private void Start()
     {
+        ClampReputationToCurrentCap();
         NotifyAll();
     }
 
@@ -54,9 +57,7 @@ public class ResourceManager : MonoBehaviour
     public void ModifyReputation(int amount)
     {
         currentReputation += amount;
-
-        if (currentReputation < 0)
-            currentReputation = 0;
+        ClampReputationToCurrentCap();
 
         OnReputationChanged?.Invoke(currentReputation);
 
@@ -72,11 +73,26 @@ public class ResourceManager : MonoBehaviour
 
     public void SetReputation(int value)
     {
-        currentReputation = Mathf.Max(0, value);
+        currentReputation = value;
+        ClampReputationToCurrentCap();
+
         OnReputationChanged?.Invoke(currentReputation);
 
         if (currentReputation <= 0)
             OnReputationReachedZero?.Invoke();
+    }
+
+    private void ClampReputationToCurrentCap()
+    {
+        currentReputation = Mathf.Clamp(currentReputation, 0, GetCurrentReputationCap());
+    }
+
+    private int GetCurrentReputationCap()
+    {
+        if (ReputationTierManager.Instance != null)
+            return Mathf.Max(0, ReputationTierManager.Instance.CurrentReputationCap);
+
+        return int.MaxValue;
     }
 
     private void NotifyAll()
