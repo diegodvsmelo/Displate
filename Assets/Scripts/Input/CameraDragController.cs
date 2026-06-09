@@ -60,7 +60,13 @@ public class CameraDragController : MonoBehaviour
         if (!ActionsAreValid())
             return;
 
-        if (GameManager.Instance.isGamePaused)
+        if (GameManager.Instance != null && GameManager.Instance.isGamePaused)
+        {
+            isDragging = false;
+            return;
+        }
+
+        if (ShouldBlockCameraInput())
         {
             isDragging = false;
             return;
@@ -79,6 +85,14 @@ public class CameraDragController : MonoBehaviour
                pointerPositionAction.action != null &&
                scrollAction != null &&
                scrollAction.action != null;
+    }
+
+    private bool ShouldBlockCameraInput()
+    {
+        if (StaffRecruitmentManager.Instance != null && StaffRecruitmentManager.Instance.IsRecruitmentOpen)
+            return true;
+
+        return false;
     }
 
     private void HandleZoom()

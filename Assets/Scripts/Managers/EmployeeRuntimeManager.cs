@@ -50,6 +50,23 @@ public class EmployeeRuntimeManager : MonoBehaviour
         }
     }
 
+    public void RegisterEmployee(EmployeeData employee)
+    {
+        if (employee == null)
+            return;
+
+        uniqueEmployees.Add(employee);
+    }
+
+    public void RegisterEmployees(IReadOnlyList<EmployeeData> employees)
+    {
+        if (employees == null)
+            return;
+
+        for (int i = 0; i < employees.Count; i++)
+            RegisterEmployee(employees[i]);
+    }
+
     public void ResetEmployeesForSession()
     {
         foreach (EmployeeData employee in uniqueEmployees)

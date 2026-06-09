@@ -48,6 +48,7 @@ public class EmployeeData : ScriptableObject
 
     [Header("Contract Info")]
     [Min(0)] public int baseSalary = 1;
+    [Min(0)] public int hireCost = 0;
 
     [Header("Session Defaults")]
     [SerializeField] private bool resetRuntimeStateOnSessionStart = true;
@@ -79,6 +80,9 @@ public class EmployeeData : ScriptableObject
 
         if (baseSalary < 0)
             baseSalary = 0;
+            
+        if (hireCost < 0)
+            hireCost = 0;
 
         if (sessionStartStamina < 0)
             sessionStartStamina = 0;

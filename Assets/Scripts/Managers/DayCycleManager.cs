@@ -396,6 +396,32 @@ public class DayCycleManager : MonoBehaviour
 
     public void StartNextDay()
     {
+        if (TryOpenRecruitmentBeforeNextDay())
+            return;
+
+        StartNextDayInternal();
+    }
+
+    private bool TryOpenRecruitmentBeforeNextDay()
+    {
+        if (StaffRecruitmentManager.Instance == null)
+            return false;
+
+        if (!StaffRecruitmentManager.Instance.ShouldOpenAfterCompletedDay(currentDay))
+            return false;
+
+        if (dailyReportPanel != null)
+            dailyReportPanel.SetActive(false);
+
+        if (startNextDayButton != null)
+            startNextDayButton.gameObject.SetActive(false);
+
+        StaffRecruitmentManager.Instance.OpenRecruitment(StartNextDayInternal);
+        return true;
+    }
+
+    private void StartNextDayInternal()
+    {
         currentDay++;
         ResetDailyCounters();
         InitializeDayClock();

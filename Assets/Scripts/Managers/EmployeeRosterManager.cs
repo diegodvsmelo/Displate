@@ -7,12 +7,15 @@ public class EmployeeRosterManager : MonoBehaviour
 
     [Header("Current Employee Roster")]
     [SerializeField] private List<EmployeeData> currentEmployees = new();
+    [Header("Roster Limit")]
+    [SerializeField, Min(1)] private int currentRosterLimit = 5;
 
     [Header("UI Views")]
     [SerializeField] private StaffSidebarUI compactSidebarUI;
     [SerializeField] private EmployeeCardListUI expandedSidebarUI;
 
     public IReadOnlyList<EmployeeData> CurrentEmployees => currentEmployees;
+
     public int CurrentRosterLimit => GetCurrentRosterLimit();
     public bool HasRosterSlotAvailable => currentEmployees.Count < CurrentRosterLimit;
 
@@ -141,8 +144,8 @@ public class EmployeeRosterManager : MonoBehaviour
     private int GetCurrentRosterLimit()
     {
         if (ReputationTierManager.Instance != null)
-            return ReputationTierManager.Instance.CurrentRosterLimit;
+            return Mathf.Max(1, ReputationTierManager.Instance.CurrentRosterLimit);
 
-        return int.MaxValue;
+        return Mathf.Max(1, currentRosterLimit);
     }
 }

@@ -272,8 +272,8 @@ Implemented / prototyped:
 - [x] Stop new tasks when day timer ends
 - [x] Let active tasks finish before ending day
 - [x] Generate end-of-day report
-- [ ] Connect revenue and payroll
-- [ ] Add reputation tiers
+- [x] Connect revenue and payroll
+- [x] Add reputation tiers
 - [ ] Unlock team size / stations / hiring by progression
 - [ ] Implement hiring cadence
 - [ ] Implement shop cadence
