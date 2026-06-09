@@ -23,6 +23,9 @@ public class EmployeeCardUI : MonoBehaviour, IPointerClickHandler
 
     [Header("Bars")]
     [SerializeField] private Slider staminaSlider;
+    [SerializeField] private TextMeshProUGUI staminaValueText;
+    [SerializeField] private string staminaValueFormat = "{0}/{1}";
+
     [SerializeField] private Slider xpSlider;
 
     [Header("Availability Overlay")]
@@ -165,7 +168,7 @@ public class EmployeeCardUI : MonoBehaviour, IPointerClickHandler
         UpdateStatusIcon(statusIconSlotB, employeeData.statusIconB);
 
         if (staminaSlider != null)
-            staminaSlider.value = employeeData.GetStaminaPercent();
+            UpdateStaminaUI();
 
         if (xpSlider != null)
             xpSlider.value = employeeData.GetXpPercent();
@@ -175,6 +178,22 @@ public class EmployeeCardUI : MonoBehaviour, IPointerClickHandler
         UpdateManualRestButtonVisibility();
     }
 
+    private void UpdateStaminaUI()
+    {
+        if (employeeData == null)
+            return;
+
+        if (staminaSlider != null)
+            staminaSlider.value = employeeData.GetStaminaPercent();
+
+        if (staminaValueText != null)
+        {
+            int currentStamina = Mathf.Clamp(employeeData.currentStamina, 0, employeeData.maxStamina);
+            int maxStamina = Mathf.Max(1, employeeData.maxStamina);
+
+            staminaValueText.text = string.Format(staminaValueFormat, currentStamina, maxStamina);
+        }
+    }
     private void UpdateAttributeSquares()
     {
         if (employeeData == null)

@@ -61,8 +61,22 @@ public class StaffRecruitmentManager : MonoBehaviour
     [Tooltip("Quanto menor que 1, mais o late game tende a gerar atributos altos.")]
     [SerializeField, Min(0.1f)] private float highPrestigeSkillPower = 0.55f;
 
+    
+    [Header("Generated Recruits - Stamina")]
+    [SerializeField, Min(1)] private int minGeneratedMaxStamina = 75;
+
+    [Tooltip("Valor de referencia/padrao esperado no começo do jogo.")]
+    [SerializeField, Min(1)] private int defaultGeneratedMaxStamina = 100;
+
+    [SerializeField, Min(1)] private int maxGeneratedMaxStamina = 200;
+
+    [Tooltip("Quanto maior, mais o early game tende a gerar stamina baixa/proxima do valor padrao.")]
+    [SerializeField, Min(0.1f)] private float lowPrestigeStaminaPower = 4f;
+
+    [Tooltip("Quanto menor que 1, mais o late game tende a gerar stamina alta.")]
+    [SerializeField, Min(0.1f)] private float highPrestigeStaminaPower = 0.65f;
+
     [Header("Generated Recruits - Contract")]
-    [SerializeField, Min(1)] private int generatedMaxStamina = 100;
     [SerializeField, Min(1)] private int generatedStartingLevel = 1;
     [SerializeField, Min(0)] private int minGeneratedBaseSalary = 1;
     [SerializeField, Min(0)] private int maxGeneratedBaseSalary = 8;
@@ -291,7 +305,7 @@ public class StaffRecruitmentManager : MonoBehaviour
         employee.operationalSkill = RollSkillForCurrentPrestige();
         employee.agility = RollSkillForCurrentPrestige();
 
-        employee.maxStamina = Mathf.Max(1, generatedMaxStamina);
+        employee.maxStamina = RollMaxStaminaForCurrentPrestige();
         employee.currentStamina = employee.maxStamina;
         employee.availabilityState = EmployeeAvailabilityState.Available;
 
@@ -308,6 +322,29 @@ public class StaffRecruitmentManager : MonoBehaviour
         employee.baseSalary = CalculateGeneratedBaseSalary(employee);
 
         return employee;
+    }
+
+    private int RollMaxStaminaForCurrentPrestige()
+    {
+        int minStamina = Mathf.Max(1, minGeneratedMaxStamina);
+        int defaultStamina = Mathf.Max(minStamina, defaultGeneratedMaxStamina);
+        int maxStamina = Mathf.Max(defaultStamina, maxGeneratedMaxStamina);
+
+        int prestigeLevel = GetCurrentPrestigeLevelForRecruitment();
+
+        float prestige01 = Mathf.InverseLerp(
+            minPrestigeLevelForRecruitScaling,
+            Mathf.Max(minPrestigeLevelForRecruitScaling, maxPrestigeLevelForRecruitScaling),
+            prestigeLevel
+        );
+
+        float curvePower = Mathf.Lerp(lowPrestigeStaminaPower, highPrestigeStaminaPower, prestige01);
+
+        float random01 = Mathf.Pow(UnityEngine.Random.value, curvePower);
+
+        int rolledStamina = Mathf.RoundToInt(Mathf.Lerp(minStamina, maxStamina, random01));
+
+        return Mathf.Clamp(rolledStamina, minStamina, maxStamina);
     }
 
     private int RollSkillForCurrentPrestige()
@@ -816,5 +853,15 @@ public class StaffRecruitmentManager : MonoBehaviour
             int randomIndex = UnityEngine.Random.Range(i, list.Count);
             (list[i], list[randomIndex]) = (list[randomIndex], list[i]);
         }
+    }
+
+    private void OnValidate()
+    {
+        minGeneratedMaxStamina = Mathf.Max(1, minGeneratedMaxStamina);
+        defaultGeneratedMaxStamina = Mathf.Max(minGeneratedMaxStamina, defaultGeneratedMaxStamina);
+        maxGeneratedMaxStamina = Mathf.Max(defaultGeneratedMaxStamina, maxGeneratedMaxStamina);
+
+        lowPrestigeStaminaPower = Mathf.Max(0.1f, lowPrestigeStaminaPower);
+        highPrestigeStaminaPower = Mathf.Max(0.1f, highPrestigeStaminaPower);
     }
 }

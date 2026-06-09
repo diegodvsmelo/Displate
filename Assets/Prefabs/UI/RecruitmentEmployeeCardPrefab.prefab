@@ -379,7 +379,7 @@ MonoBehaviour:
   hireButtonColor: {r: 0.30588236, g: 0.54901963, b: 0.34117648, a: 1}
   dismissButtonColor: {r: 0.84705883, g: 0.29803923, b: 0.23921569, a: 1}
   disabledButtonColor: {r: 0.45, g: 0.45, b: 0.45, a: 0.6}
-  borderImage: {fileID: 0}
+  borderImage: {fileID: 4919557498168125778}
   neutralBorderColor: {r: 0, g: 0, b: 0, a: 0}
   pendingHireBorderColor: {r: 0.40392157, g: 0.7176471, b: 0.3882353, a: 1}
   pendingDismissBorderColor: {r: 0.84705883, g: 0.29803923, b: 0.23921569, a: 1}
