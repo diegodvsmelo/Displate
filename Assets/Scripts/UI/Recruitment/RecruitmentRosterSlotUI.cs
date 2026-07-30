@@ -40,6 +40,7 @@ public class RecruitmentRosterSlotUI : MonoBehaviour, IDropHandler
         CurrentCard.SetCurrentRosterSlot(this);
 
         Transform cardTransform = CurrentCard.transform;
+
         cardTransform.SetParent(transform, false);
         cardTransform.SetAsLastSibling();
 
@@ -57,23 +58,37 @@ public class RecruitmentRosterSlotUI : MonoBehaviour, IDropHandler
             card.SetCurrentRosterSlot(null);
     }
 
-    private void ForceCardCentered(RecruitmentEmployeeCardUI card)
+    private void ForceCardCentered(
+    RecruitmentEmployeeCardUI card)
     {
         if (card == null)
             return;
 
-        RectTransform rectTransform = card.transform as RectTransform;
+        RectTransform rectTransform =
+            card.transform as RectTransform;
 
         if (rectTransform == null)
             return;
 
-        rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
-        rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-        rectTransform.pivot = new Vector2(0.5f, 0.5f);
+        rectTransform.anchorMin =
+            new Vector2(0.5f, 0.5f);
 
-        rectTransform.anchoredPosition = Vector2.zero;
-        rectTransform.localPosition = Vector3.zero;
-        rectTransform.localRotation = Quaternion.identity;
-        rectTransform.localScale = Vector3.one;
+        rectTransform.anchorMax =
+            new Vector2(0.5f, 0.5f);
+
+        rectTransform.pivot =
+            new Vector2(0.5f, 0.5f);
+
+        rectTransform.anchoredPosition =
+            Vector2.zero;
+
+        rectTransform.localPosition =
+            Vector3.zero;
+
+        rectTransform.localRotation =
+            Quaternion.identity;
+
+        rectTransform.localScale =
+            Vector3.one;
     }
 }

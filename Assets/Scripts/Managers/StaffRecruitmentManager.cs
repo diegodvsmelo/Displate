@@ -129,6 +129,8 @@ public class StaffRecruitmentManager : MonoBehaviour
     public int RecruitmentIntervalDays => recruitmentIntervalDays;
     public bool IsRecruitmentOpen { get; private set; }
 
+    private readonly HashSet<EmployeeData> generatedRuntimeEmployees = new();
+    private bool isClosingRecruitment;
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -295,6 +297,7 @@ public class StaffRecruitmentManager : MonoBehaviour
         generatedRecruitSerial++;
 
         EmployeeData employee = ScriptableObject.CreateInstance<EmployeeData>();
+        generatedRuntimeEmployees.Add(employee);
 
         employee.name = $"Generated Recruit {generatedRecruitSerial}";
         employee.employeeName = GetRandomRecruitName(usedNamesThisWindow);
@@ -542,46 +545,98 @@ public class StaffRecruitmentManager : MonoBehaviour
             TryAddToRoster(card);
     }
 
-    public bool TryDropCardOnRosterSlot(RecruitmentEmployeeCardUI card, RecruitmentRosterSlotUI targetSlot)
+    public bool TryDropCardOnRosterSlot(
+    RecruitmentEmployeeCardUI card,
+    RecruitmentRosterSlotUI targetSlot)
     {
         if (card == null || card.Employee == null || targetSlot == null)
             return false;
 
-        EmployeeData employee = card.Employee;
-        bool alreadyInRoster = workingRoster.Contains(employee);
+        EmployeeData incomingEmployee = card.Employee;
+        bool incomingAlreadyInRoster =
+            workingRoster.Contains(incomingEmployee);
 
-        if (!alreadyInRoster && !HasRosterSpace())
-            return false;
+        RecruitmentRosterSlotUI sourceSlot =
+            card.CurrentRosterSlot;
 
-        RecruitmentRosterSlotUI sourceSlot = card.CurrentRosterSlot;
+        RecruitmentEmployeeCardUI displacedCard =
+            targetSlot.CurrentCard;
 
-        if (targetSlot.CurrentCard == card)
-            return true;
-
-        if (targetSlot.CurrentCard != null && targetSlot.CurrentCard != card)
+        if (displacedCard == card)
         {
-            // Só permite troca entre dois cards que já estão no roster.
-            // Não força demissão automática ao soltar candidato em slot ocupado.
-            if (sourceSlot == null)
-                return false;
+            targetSlot.SetCard(card);
+            RefreshAllVisuals();
+            return true;
+        }
 
-            RecruitmentEmployeeCardUI oldCard = targetSlot.CurrentCard;
+        if (displacedCard != null)
+        {
+            if (sourceSlot != null)
+            {
+                int incomingIndex =
+                    workingRoster.IndexOf(incomingEmployee);
 
-            targetSlot.ClearCard(oldCard);
-            sourceSlot.ClearCard(card);
+                int displacedIndex =
+                    workingRoster.IndexOf(displacedCard.Employee);
+
+                if (incomingIndex >= 0 && displacedIndex >= 0)
+                {
+                    workingRoster[incomingIndex] =
+                        displacedCard.Employee;
+
+                    workingRoster[displacedIndex] =
+                        incomingEmployee;
+                }
+
+                targetSlot.ClearCard(displacedCard);
+                sourceSlot.ClearCard(card);
+
+                targetSlot.SetCard(card);
+                sourceSlot.SetCard(displacedCard);
+
+                RefreshAllVisuals();
+                return true;
+            }
+
+            int replacedRosterIndex =
+                workingRoster.IndexOf(displacedCard.Employee);
+
+            if (replacedRosterIndex >= 0)
+                workingRoster.RemoveAt(replacedRosterIndex);
+
+            targetSlot.ClearCard(displacedCard);
+            PlaceCardInPool(displacedCard);
+
+            if (!workingRoster.Contains(incomingEmployee))
+            {
+                if (replacedRosterIndex >= 0 &&
+                    replacedRosterIndex <= workingRoster.Count)
+                {
+                    workingRoster.Insert(
+                        replacedRosterIndex,
+                        incomingEmployee
+                    );
+                }
+                else
+                {
+                    workingRoster.Add(incomingEmployee);
+                }
+            }
 
             targetSlot.SetCard(card);
-            sourceSlot.SetCard(oldCard);
 
             RefreshAllVisuals();
             return true;
         }
 
-        if (!alreadyInRoster)
-            workingRoster.Add(employee);
+        if (!incomingAlreadyInRoster && !HasRosterSpace())
+            return false;
 
         if (sourceSlot != null && sourceSlot != targetSlot)
             sourceSlot.ClearCard(card);
+
+        if (!incomingAlreadyInRoster)
+            workingRoster.Add(incomingEmployee);
 
         targetSlot.SetCard(card);
 
@@ -589,13 +644,13 @@ public class StaffRecruitmentManager : MonoBehaviour
         return true;
     }
 
-    public bool TryDropCardOnPool(RecruitmentEmployeeCardUI card)
+    public bool TryDropCardOnPool(
+        RecruitmentEmployeeCardUI card)
     {
         if (card == null || card.Employee == null)
             return false;
 
-        TryRemoveFromRoster(card);
-        return true;
+        return TryRemoveFromRoster(card);
     }
 
     private bool TryAddToRoster(RecruitmentEmployeeCardUI card)
@@ -790,47 +845,112 @@ public class StaffRecruitmentManager : MonoBehaviour
 
     private void ConfirmChanges()
     {
+        if (!IsRecruitmentOpen || isClosingRecruitment)
+            return;
+
         if (workingRoster.Count < minimumRosterSize)
             return;
 
         int hireCost = CalculatePendingHireCost();
 
-        if (chargeHiringCostsOnConfirm && hireCost > 0 && ResourceManager.Instance != null)
+        if (chargeHiringCostsOnConfirm &&
+            hireCost > 0 &&
+            ResourceManager.Instance != null)
         {
-            bool spent = ResourceManager.Instance.TrySpendMoney(hireCost);
-
-            if (!spent)
+            if (!ResourceManager.Instance.TrySpendMoney(hireCost))
                 return;
         }
 
+        List<EmployeeData> confirmedRoster =
+            new List<EmployeeData>(workingRoster);
+
         if (EmployeeRosterManager.Instance != null)
-            EmployeeRosterManager.Instance.SetEmployees(new List<EmployeeData>(workingRoster));
+            EmployeeRosterManager.Instance.SetEmployees(confirmedRoster);
 
         if (EmployeeRuntimeManager.Instance != null)
-            EmployeeRuntimeManager.Instance.RegisterEmployees(workingRoster);
+            EmployeeRuntimeManager.Instance.SyncWithRoster(confirmedRoster);
 
-        CloseAndContinue();
+        CloseAndContinue(confirmedRoster);
     }
 
     private void CancelChanges()
     {
-        CloseAndContinue();
+        if (!IsRecruitmentOpen || isClosingRecruitment)
+            return;
+
+        CloseAndContinue(originalRoster);
     }
 
-    private void CloseAndContinue()
+    private void CloseAndContinue(
+    IReadOnlyList<EmployeeData> retainedEmployees)
     {
+        if (isClosingRecruitment)
+            return;
+
+        isClosingRecruitment = true;
         IsRecruitmentOpen = false;
+
+        if (confirmButton != null)
+            confirmButton.interactable = false;
+
+        if (cancelButton != null)
+            cancelButton.interactable = false;
+
+        CleanupDiscardedGeneratedEmployees(retainedEmployees);
+
         if (screenRoot != null)
             screenRoot.SetActive(false);
 
         ClearUI();
+
+        originalRoster.Clear();
+        workingRoster.Clear();
+        currentRecruitOptions.Clear();
 
         RestoreSidebarEmployee();
 
         Action callback = onRecruitmentFinished;
         onRecruitmentFinished = null;
 
+        isClosingRecruitment = false;
+
         callback?.Invoke();
+    }
+
+    private void CleanupDiscardedGeneratedEmployees(
+    IReadOnlyList<EmployeeData> retainedEmployees)
+    {
+        List<EmployeeData> employeesToDestroy = new();
+
+        foreach (EmployeeData employee in generatedRuntimeEmployees)
+        {
+            bool shouldRetain = false;
+
+            if (employee != null && retainedEmployees != null)
+            {
+                for (int i = 0; i < retainedEmployees.Count; i++)
+                {
+                    if (retainedEmployees[i] != employee)
+                        continue;
+
+                    shouldRetain = true;
+                    break;
+                }
+            }
+
+            if (!shouldRetain)
+                employeesToDestroy.Add(employee);
+        }
+
+        for (int i = 0; i < employeesToDestroy.Count; i++)
+        {
+            EmployeeData employee = employeesToDestroy[i];
+
+            generatedRuntimeEmployees.Remove(employee);
+
+            if (employee != null)
+                Destroy(employee);
+        }
     }
 
     private void ForceRebuildLayouts()

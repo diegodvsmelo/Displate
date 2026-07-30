@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 
+[DefaultExecutionOrder(-200)]
 public class ResourceManager : MonoBehaviour
 {
     public static ResourceManager Instance { get; private set; }

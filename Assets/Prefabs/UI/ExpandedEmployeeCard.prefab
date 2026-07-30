@@ -1028,7 +1028,7 @@ MonoBehaviour:
   statusIconSlotA: {fileID: 8293443530243701413}
   statusIconSlotB: {fileID: 6311340744569000418}
   staminaSlider: {fileID: 1917598017194200568}
-  staminaValueText: {fileID: 2406359572387111462}
+  staminaValueText: {fileID: 0}
   staminaValueFormat: '{0}/{1}'
   xpSlider: {fileID: 5167081446792914174}
   availabilityOverlayGroup: {fileID: 3502319581601090462}

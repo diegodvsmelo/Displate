@@ -71,7 +71,17 @@ public class RecruitmentCardDragHandler : MonoBehaviour, IBeginDragHandler, IDra
         canvasGroup.alpha = 1f;
 
         if (!droppedOnValidTarget)
-            cardUI.MoveToParent(originalParent, originalSiblingIndex);
+        {
+            cardUI.MoveToParent(
+                originalParent,
+                originalSiblingIndex
+            );
+
+            return;
+        }
+
+        if (cardUI.CurrentRosterSlot != null)
+            cardUI.CurrentRosterSlot.SetCard(cardUI);
     }
 
     public void MarkDroppedOnValidTarget()

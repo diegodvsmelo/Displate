@@ -67,6 +67,14 @@ public class EmployeeRuntimeManager : MonoBehaviour
             RegisterEmployee(employees[i]);
     }
 
+    // Sincroniza completamente o gerenciamento de runtime
+    // com o elenco confirmado no recrutamento.
+    public void SyncWithRoster(IReadOnlyList<EmployeeData> employees)
+    {
+        uniqueEmployees.Clear();
+        RegisterEmployees(employees);
+    }
+
     public void ResetEmployeesForSession()
     {
         foreach (EmployeeData employee in uniqueEmployees)
@@ -94,8 +102,11 @@ public class EmployeeRuntimeManager : MonoBehaviour
 
     private bool ShouldPauseRecovery()
     {
-        if (GameManager.Instance != null && GameManager.Instance.isGamePaused)
+        if (GameManager.Instance != null &&
+            GameManager.Instance.isGamePaused)
+        {
             return true;
+        }
 
         return false;
     }
@@ -107,8 +118,15 @@ public class EmployeeRuntimeManager : MonoBehaviour
             if (employee == null)
                 continue;
 
-            employee.TickPassiveRecovery(passiveAvailableRecoveryPerSecond, Time.deltaTime);
-            employee.TickRestRecovery(restingRecoveryPerSecond, Time.deltaTime);
+            employee.TickPassiveRecovery(
+                passiveAvailableRecoveryPerSecond,
+                Time.deltaTime
+            );
+
+            employee.TickRestRecovery(
+                restingRecoveryPerSecond,
+                Time.deltaTime
+            );
         }
     }
 }

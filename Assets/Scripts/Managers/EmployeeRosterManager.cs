@@ -66,7 +66,7 @@ public class EmployeeRosterManager : MonoBehaviour
 
         RebuildAllViews();
     }
-
+    
     public void AddEmployee(EmployeeData employee)
     {
         TryAddEmployee(employee);

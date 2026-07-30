@@ -274,8 +274,12 @@ Implemented / prototyped:
 - [x] Generate end-of-day report
 - [x] Connect revenue and payroll
 - [x] Add reputation tiers
-- [ ] Unlock team size / stations / hiring by progression
-- [ ] Implement hiring cadence
+- [x] Configure roster limits per reputation tier
+- [ ] Implement tier expansion confirmation flow
+- [ ] Unlock stations by progression
+- [ ] Unlock hiring by progression
+- [x] Implement hiring cadence
+- [x] Finalize recruitment hire / dismiss / confirm / cancel flow
 - [ ] Implement shop cadence
 
 ### Phase 7 — Structure Wear and Malfunctions
