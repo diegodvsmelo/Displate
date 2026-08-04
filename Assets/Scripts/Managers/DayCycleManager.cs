@@ -12,6 +12,10 @@ public class DayCycleManager : MonoBehaviour
     [Header("Daily Report Buttons")]
     [SerializeField] private Button startNextDayButton;
 
+    [Header("Tier Progression")]
+    [Tooltip("Se ativo, confirma automaticamente um novo tier ao clicar em Start Next Day.")]
+    [SerializeField] private bool autoConfirmTierExpansionOnNextDay = true;
+
     [Header("Top Bar UI")]
     [SerializeField] private TextMeshProUGUI dayText;
     [SerializeField] private TextMeshProUGUI clockText;
@@ -396,12 +400,34 @@ public class DayCycleManager : MonoBehaviour
 
     public void StartNextDay()
     {
+        TryAutoConfirmTierExpansion();
+
         if (TryOpenRecruitmentBeforeNextDay())
             return;
 
         StartNextDayInternal();
     }
 
+    private void TryAutoConfirmTierExpansion()
+    {
+        if (!autoConfirmTierExpansionOnNextDay)
+            return;
+
+        ReputationTierManager tierManager =
+            ReputationTierManager.Instance;
+
+        if (tierManager == null)
+        {
+            Debug.LogWarning(
+                "[DayCycleManager] ReputationTierManager não foi encontrado."
+            );
+
+            return;
+        }
+
+        tierManager.TryConfirmTierExpansion();
+    }
+    
     private bool TryOpenRecruitmentBeforeNextDay()
     {
         if (StaffRecruitmentManager.Instance == null)

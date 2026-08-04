@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 
 public class StaffRecruitmentManager : MonoBehaviour
 {
@@ -194,18 +195,60 @@ public class StaffRecruitmentManager : MonoBehaviour
 
     public void OpenRecruitment(Action onFinished)
     {
+        if (IsRecruitmentOpen)
+            return;
+
         IsRecruitmentOpen = true;
         onRecruitmentFinished = onFinished;
 
         HideSidebarEmployee();
 
-        BuildTemporaryState();
-        BuildUI();
-
         if (screenRoot != null)
             screenRoot.SetActive(true);
 
+        BuildTemporaryState();
+        BuildUI();
         RefreshAllVisuals();
+
+        StartCoroutine(ResetScrollPositionsAfterLayout());
+    }
+
+    private IEnumerator ResetScrollPositionsAfterLayout()
+    {
+        yield return null;
+
+        if (!IsRecruitmentOpen)
+            yield break;
+
+        Canvas.ForceUpdateCanvases();
+
+        if (rosterSlotsContainer is RectTransform rosterRect)
+            LayoutRebuilder.ForceRebuildLayoutImmediate(rosterRect);
+
+        if (recruitsContainer is RectTransform recruitsRect)
+            LayoutRebuilder.ForceRebuildLayoutImmediate(recruitsRect);
+
+        Canvas.ForceUpdateCanvases();
+
+        ScrollRect currentStaffScrollRect =
+            rosterSlotsContainer.GetComponentInParent<ScrollRect>();
+
+        ScrollRect availableRecruitsScrollRect =
+            recruitsContainer.GetComponentInParent<ScrollRect>();
+
+        if (currentStaffScrollRect != null)
+        {
+            currentStaffScrollRect.StopMovement();
+            currentStaffScrollRect.verticalNormalizedPosition = 1f;
+            currentStaffScrollRect.velocity = Vector2.zero;
+        }
+
+        if (availableRecruitsScrollRect != null)
+        {
+            availableRecruitsScrollRect.StopMovement();
+            availableRecruitsScrollRect.verticalNormalizedPosition = 1f;
+            availableRecruitsScrollRect.velocity = Vector2.zero;
+        }
     }
 
     private void BuildTemporaryState()

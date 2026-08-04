@@ -16,6 +16,6 @@ MonoBehaviour:
   tierName: Local Unknown
   useCustomRequiredReputation: 1
   customRequiredReputation: 0
-  maxRosterSize: 3
+  maxRosterSize: 10
   locationId: 
   structureUnlockIds: []
