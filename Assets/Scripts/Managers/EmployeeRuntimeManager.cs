@@ -26,7 +26,6 @@ public class EmployeeRuntimeManager : MonoBehaviour
         Instance = this;
 
         BuildUniqueList();
-        ResetEmployeesForSession();
     }
 
     private void Update()

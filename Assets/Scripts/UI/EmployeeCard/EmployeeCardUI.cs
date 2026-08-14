@@ -38,6 +38,7 @@ public class EmployeeCardUI : MonoBehaviour, IPointerClickHandler
     [SerializeField] private RectTransform manualRestButtonRoot;
     [SerializeField] private CanvasGroup manualRestButtonCanvasGroup;
     [SerializeField] private Button manualRestButton;
+    [SerializeField] private Button trainingButton;
     [SerializeField] private float manualRestButtonExpandDuration = 0.12f;
     [SerializeField] private Vector2 manualRestButtonBaseSize = new Vector2(120f, 36f);
     [SerializeField] private float manualRestButtonOffset = 8f;
@@ -67,6 +68,11 @@ public class EmployeeCardUI : MonoBehaviour, IPointerClickHandler
             manualRestButton.onClick.RemoveListener(OnManualRestButtonClicked);
             manualRestButton.onClick.AddListener(OnManualRestButtonClicked);
         }
+        if (trainingButton != null)
+        {
+            trainingButton.onClick.RemoveListener(OnTrainingButtonClicked);
+            trainingButton.onClick.AddListener(OnTrainingButtonClicked);
+        }
 
         HideManualRestButtonInstant();
         HideOverlayInstant();
@@ -90,6 +96,12 @@ public class EmployeeCardUI : MonoBehaviour, IPointerClickHandler
     private void OnDestroy()
     {
         UnsubscribeFromCurrentData();
+
+        if (manualRestButton != null)
+            manualRestButton.onClick.RemoveListener(OnManualRestButtonClicked);
+
+        if (trainingButton != null)
+            trainingButton.onClick.RemoveListener(OnTrainingButtonClicked);
     }
 
     private void OnDisable()
@@ -303,7 +315,7 @@ public class EmployeeCardUI : MonoBehaviour, IPointerClickHandler
         if (employeeData == null)
             return false;
 
-        if (!employeeData.IsAvailable())
+        if (employeeData.IsOccupied())
             return false;
 
         if (manualRestButtonRoot == null)
@@ -320,7 +332,21 @@ public class EmployeeCardUI : MonoBehaviour, IPointerClickHandler
         if (!CanShowManualRestButton())
             return false;
 
+        if (!employeeData.IsAvailable())
+            return false;
+
         return employeeData.currentStamina < employeeData.maxStamina;
+    }
+
+    private bool CanUseTrainingButton()
+    {
+        if (!CanShowManualRestButton())
+            return false;
+
+        if (employeeData.IsOccupied())
+            return false;
+
+        return employeeData.HasUnspentSkillPoints();
     }
 
     private void ShowManualRestButtonAt(PointerEventData eventData)
@@ -368,16 +394,20 @@ public class EmployeeCardUI : MonoBehaviour, IPointerClickHandler
 
     private void UpdateManualRestButtonInteractivity()
     {
-        bool canUse = CanUseManualRestButton();
+        bool canRest = CanUseManualRestButton();
+        bool canTrain = CanUseTrainingButton();
 
         if (manualRestButton != null)
-            manualRestButton.interactable = canUse;
+            manualRestButton.interactable = canRest;
+
+        if (trainingButton != null)
+            trainingButton.interactable = canTrain;
 
         if (manualRestButtonCanvasGroup != null)
         {
-            manualRestButtonCanvasGroup.alpha = canUse ? 1f : disabledButtonAlpha;
+            manualRestButtonCanvasGroup.alpha = 1f;
             manualRestButtonCanvasGroup.blocksRaycasts = true;
-            manualRestButtonCanvasGroup.interactable = canUse;
+            manualRestButtonCanvasGroup.interactable = true;
         }
     }
 
@@ -487,5 +517,22 @@ public class EmployeeCardUI : MonoBehaviour, IPointerClickHandler
 
         employeeData.SetResting();
         HideManualRestButtonInstant();
+    }
+
+    private void OnTrainingButtonClicked()
+    {
+        if (!CanUseTrainingButton())
+            return;
+
+        if (CharacterSheetUI.Instance == null)
+        {
+            Debug.LogWarning(
+                "[EmployeeCardUI] CharacterSheetUI não foi encontrado na cena."
+            );
+            return;
+        }
+
+        HideManualRestButtonInstant();
+        CharacterSheetUI.Instance.OpenSheet(employeeData);
     }
 }

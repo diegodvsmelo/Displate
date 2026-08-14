@@ -22,17 +22,18 @@ MonoBehaviour:
   currentStamina: 200
   availabilityState: 0
   currentLevel: 1
-  currentXP: 20
-  skillPoints: 0
+  currentXP: 99
+  skillPoints: 3
   hasTrait: 0
   traitName: 
   statusIconA: {fileID: 0}
   statusIconB: {fileID: 0}
   baseSalary: 2
+  hireCost: 0
   resetRuntimeStateOnSessionStart: 1
   startSessionWithFullStamina: 1
   sessionStartStamina: 1
   sessionStartLevel: 1
-  sessionStartXP: 0
-  sessionStartSkillPoints: 0
+  sessionStartXP: 99
+  sessionStartSkillPoints: 3
   sessionStartAvailability: 0

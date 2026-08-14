@@ -67,5 +67,5 @@
         "*.sln": "*.csproj",
         "*.slnx": "*.csproj"
     },
-    "dotnet.defaultSolution": "Pawns-and-Plates.slnx"
+    "dotnet.defaultSolution": "Protótipo Displate.slnx"
 }

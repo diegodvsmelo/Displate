@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class EmployeeRosterManager : MonoBehaviour
 {
+    private readonly List<EmployeeData> runtimeEmployeeCopies = new();
     public static EmployeeRosterManager Instance { get; private set; }
 
     [Header("Current Employee Roster")]
@@ -30,6 +31,8 @@ public class EmployeeRosterManager : MonoBehaviour
         }
 
         Instance = this;
+
+        CreateRuntimeRoster();
     }
 
     private void Start()
@@ -39,6 +42,9 @@ public class EmployeeRosterManager : MonoBehaviour
         if (reputationTierManager != null)
             reputationTierManager.OnCurrentTierChanged += HandleCurrentTierChanged;
 
+        if (EmployeeRuntimeManager.Instance != null)
+            EmployeeRuntimeManager.Instance.SyncWithRoster(currentEmployees);
+
         RebuildAllViews();
     }
 
@@ -46,6 +52,19 @@ public class EmployeeRosterManager : MonoBehaviour
     {
         if (reputationTierManager != null)
             reputationTierManager.OnCurrentTierChanged -= HandleCurrentTierChanged;
+
+        for (int i = 0; i < runtimeEmployeeCopies.Count; i++)
+        {
+            EmployeeData runtimeEmployee = runtimeEmployeeCopies[i];
+
+            if (runtimeEmployee != null)
+                Destroy(runtimeEmployee);
+        }
+
+        runtimeEmployeeCopies.Clear();
+
+        if (Instance == this)
+            Instance = null;
     }
 
     private void HandleCurrentTierChanged(ReputationTierData currentTier)
@@ -56,6 +75,31 @@ public class EmployeeRosterManager : MonoBehaviour
     public List<EmployeeData> GetCurrentEmployeesList()
     {
         return currentEmployees;
+    }
+
+    private void CreateRuntimeRoster()
+    {
+        List<EmployeeData> sourceEmployees =
+            new List<EmployeeData>(currentEmployees);
+
+        currentEmployees = new List<EmployeeData>();
+
+        foreach (EmployeeData sourceEmployee in sourceEmployees)
+        {
+            if (sourceEmployee == null)
+                continue;
+
+            EmployeeData runtimeEmployee = Instantiate(sourceEmployee);
+
+            runtimeEmployee.name = $"{sourceEmployee.name} (Runtime)";
+            runtimeEmployee.hideFlags = HideFlags.DontSave;
+
+            if (runtimeEmployee.ShouldResetRuntimeStateOnSessionStart())
+                runtimeEmployee.ResetRuntimeStateForSession();
+
+            runtimeEmployeeCopies.Add(runtimeEmployee);
+            currentEmployees.Add(runtimeEmployee);
+        }
     }
 
     public void SetEmployees(List<EmployeeData> employees)

@@ -279,6 +279,7 @@ Implemented / prototyped:
 - [ ] Unlock stations by progression
 - [ ] Unlock hiring by progression
 - [x] Implement hiring cadence
+- [x] Add employee training screen
 - [x] Finalize recruitment hire / dismiss / confirm / cancel flow
 - [ ] Implement shop cadence
 
