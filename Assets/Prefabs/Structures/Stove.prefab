@@ -355,7 +355,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TaskGeneratorStructure
   structureName: Grill-1
   generatorType: 3
-  pinContainer: {fileID: 0}
+  pinContainer: {fileID: 239210600143899841}
   allowMultiplePins: 0
   currentState: 0
   eatingDuration: 8
